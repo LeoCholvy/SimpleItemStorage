@@ -1,14 +1,14 @@
 name: SimpleItemStorage
 version: '1.0-ALPHA'
 main: fr.utt.simpleItemStorage.SimpleItemStorage
-api-version: '1.21'
+api-version: '1.13'
 
 commands:
-  hi:
-    description: Just a Hello World command
-    usage: /<command>
-    aliases: [hello]
   reload:
     description: Reload the plugin
     usage: /<command>
     aliases: [rl]
+  test:
+    description: Test command
+    usage: /<command>
+    aliases: [t]

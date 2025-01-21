@@ -1,9 +1,13 @@
 package fr.utt.simpleItemStorage;
 
+import org.bukkit.entity.Player;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DbManipulator {
     private static String url = null;
@@ -27,8 +31,9 @@ public class DbManipulator {
     private void initTables() {
         try {
             this.connection.createStatement().execute("CREATE TABLE IF NOT EXISTS SIS_Servers (\n" +
-                    "    id INTEGER PRIMARY KEY,\n" +
+                    "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                     "    owner TEXT NOT NULL,\n" +
+                    "    UUID TEXT,\n" +
                     "    lvl INTEGER DEFAULT 0,\n" +
                     "    date TEXT NOT NULL,\n" +
                     "    nbDiamonds INTEGER DEFAULT 0,\n" +
@@ -60,10 +65,10 @@ public class DbManipulator {
                     SimpleItemStorage.getInstance().getLogger().severe("Database version mismatch");
                     throw new SQLException("Database version mismatch");
                 }
+            } else {
+                this.connection.createStatement().execute("INSERT INTO SIS_Infos (version) VALUES ('" + currentVersion + "');");
             }
 
-
-            this.connection.createStatement().execute("INSERT INTO SIS_Infos (version) VALUES ('" + currentVersion + "');");
             SimpleItemStorage.getInstance().getLogger().info("Tables has been created in the database");
         } catch (SQLException e) {
             SimpleItemStorage.getInstance().getLogger().severe("Failed to create the table");
@@ -92,6 +97,64 @@ public class DbManipulator {
         } catch (SQLException e) {
             SimpleItemStorage.getInstance().getLogger().severe("Failed to close the connection to the database");
             e.printStackTrace();
+        }
+    }
+
+    public List<String> getServersNames() throws Exception {
+        String query = "SELECT id FROM SIS_Servers WHERE active = 1;";
+        List<String> servers = new ArrayList<>();
+        try {
+            var resultSet = this.connection.createStatement().executeQuery(query);
+            while (resultSet.next()) {
+                servers.add(resultSet.getString("id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new Exception("Failed to get the servers names");
+        }
+        return servers;
+    }
+
+    public String addServer(Player player) throws SQLException {
+        String date = String.valueOf(System.currentTimeMillis());
+        String owner = player.getName();
+
+        String query;
+
+        if (ConfigManipulator.onlineMode) {
+            String uuid = player.getUniqueId().toString();
+            query = "INSERT INTO SIS_Servers (owner,UUID,date,active) VALUES (\n" +
+                    "  '" + owner + "',\n" +
+                    "  '" + uuid + "',\n" +
+                    "  '" + date + "',\n" +
+                    "  1\n" +
+                    "); SELECT * FROM SIS_Servers;";
+        } else {
+            query = "INSERT INTO SIS_Servers (owner,date,active) VALUES (\n" +
+                    "  '" + owner + "',\n" +
+                    "  '" + date + "',\n" +
+                    "  1\n" +
+                    "); SELECT * FROM SIS_Servers;";
+        }
+
+        this.connection.createStatement().executeUpdate(query);
+
+        var resultSet = this.connection.createStatement().executeQuery("SELECT MAX(id) AS max_id FROM SIS_Servers;");
+        if (resultSet.next()) {
+            return resultSet.getString("max_id");
+        } else {
+            throw new SQLException("Failed to get the server id");
+        }
+    }
+
+    public void removeServer(String serverName) throws SQLException {
+        String query = "UPDATE SIS_Servers SET active = 0 WHERE id = " + serverName + ";";
+        int rowsDeleted = this.connection.createStatement().executeUpdate(query);
+        if (rowsDeleted == 0) {
+            throw new SQLException("Failed to remove the server");
+        }
+        if (rowsDeleted > 1) {
+            throw new SQLException("Multiple servers removed");
         }
     }
 }

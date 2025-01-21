@@ -55,22 +55,31 @@ public final class SimpleItemStorage extends JavaPlugin {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // Get the command label in lowercase and remove the plugin name if it is present
         String llabel = label.toLowerCase();
         String l = "simpleitemstorage:";
         if (llabel.startsWith(l)) {
             llabel = llabel.substring(l.length());
         }
+
+
         switch (llabel) {
             case "reload", "rl":
                 return CommandHandler.reload(sender, command, label, args, this);
             case "test", "t":
                 return CommandHandler.test(sender, command, label, args, this);
+            case "server":
+                return CommandHandler.server(sender, command, label, args);
+            case "terminal":
+                return CommandHandler.terminal(sender, command, label, args);
             default:
                 return false;
         }
     }
 
-
+    /**
+     * This method is called when the plugin is reloaded
+     */
     @Override
     public void reloadConfig() {
         super.reloadConfig();

@@ -8,7 +8,13 @@ commands:
     description: Reload the plugin
     usage: /<command>
     aliases: [rl]
+  # FIXME : this command is just for testing purpose, it should be removed in the final version
   test:
     description: Test command
     usage: /<command>
-    aliases: [t]
+  server:
+    description: Manage the storage servers
+    usage: /<command> <add|remove|list> [name]
+  terminal:
+    description: Open the terminal
+    usage: /<command> <open|add|get> [name]

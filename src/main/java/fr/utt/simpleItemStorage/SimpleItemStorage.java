@@ -29,6 +29,8 @@ public final class SimpleItemStorage extends JavaPlugin {
                 return true;
             case "hi":
                 return hi(sender, command, label, args);
+            case "simpleitemstorage:reload", "simpleitemstorage:rl":
+                return reload(sender, command, label, args, this);
             default:
                 return false;
         }

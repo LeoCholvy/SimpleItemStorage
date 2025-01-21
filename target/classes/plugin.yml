@@ -8,3 +8,7 @@ commands:
     description: Just a Hello World command
     usage: /<command>
     aliases: [hello]
+  reload:
+    description: Reload the plugin
+    usage: /<command>
+    aliases: [rl]

@@ -3,6 +3,9 @@ version: '1.0-ALPHA'
 main: fr.utt.simpleItemStorage.SimpleItemStorage
 api-version: '1.13'
 
+
+depend: [NBTAPI]
+
 commands:
   reload:
     description: Reload the plugin

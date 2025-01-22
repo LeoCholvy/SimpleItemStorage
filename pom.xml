@@ -12,7 +12,7 @@
   <name>simpleitemstorageplugin</name>
 
   <properties>
-    <java.version>21</java.version>
+    <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -38,6 +38,17 @@
             <goals>
               <goal>shade</goal>
             </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.mojang:authlib</include>
+                  <include>com.github.cryptomorin:XSeries</include>
+                  <include>org.xerial:sqlite-jdbc</include>
+                  <include>de.tr7zw:item-nbt-api-plugin</include>
+                  <include>com.google.code.gson:gson</include>
+                </includes>
+              </artifactSet>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -71,6 +82,14 @@
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
     </repository>
+
+    <!-- CodeMC -->
+    <repository>
+      <id>codemc-repo</id>
+      <url>https://repo.codemc.io/repository/maven-public/</url>
+      <layout>default</layout>
+    </repository>
+
   </repositories>
 
   <dependencies>
@@ -104,6 +123,12 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.11.0</version>
+    </dependency>
+    <dependency>
+      <groupId>de.tr7zw</groupId>
+      <artifactId>item-nbt-api-plugin</artifactId>
+      <version>2.14.1</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

@@ -4,12 +4,18 @@ import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import de.tr7zw.nbtapi.NBTContainer;
+import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 
+import java.io.*;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +49,7 @@ public class CommandHandler {
     }
 
     //FIXME: This method is just a test, it should be removed
-    public static boolean test(CommandSender sender, Command command, String label, String[] args, SimpleItemStorage plugin) {
+    public static boolean test(CommandSender sender, Command command, String label, String[] args, SimpleItemStorage plugin) throws IOException, ClassNotFoundException, InvalidConfigurationException {
         sender.sendMessage(plugin.getConfig().getString("test"));
 
         if (!(sender instanceof Player)) {
@@ -65,11 +71,42 @@ public class CommandHandler {
             Gson gson = new Gson();
             String itemName = gson.toJson(XItemStack.serialize(itemInHand));
 
-            sender.sendMessage("You are holding " + itemName + " x" + itemInHand.getAmount());
+            // ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            // ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+            // objectStream.writeObject(itemInHand);
+            // objectStream.close();
+            // String base64Item = Base64.getEncoder().encodeToString(byteStream.toByteArray());
+            // String itemData = base64Item;
+
+            NBTItem nbtItem = new NBTItem(itemInHand);
+            String itemData = nbtItem.toString();
+
+            // YamlConfiguration yaml = new YamlConfiguration();
+            // yaml.set("item", itemInHand);
+            // StringWriter writer = new StringWriter();
+            // yaml.save(String.valueOf(writer));
+            // String itemData = writer.toString();
+
+            sender.sendMessage("You are holding " + itemName + " x" + itemInHand.getAmount() + " with the following data: " + itemData);
 
             // copy the item in hand with the two string
             Map<String, Object> itemDataMap = gson.fromJson(itemName, new TypeToken<Map<String,Object>>(){}.getType());
             ItemStack copiedItem = XItemStack.deserialize(itemDataMap);
+            // add nbttags
+
+            // NBTContainer nbtContainer = new NBTContainer(itemData);
+            // ItemStack copiedItem = NBTItem.convertNBTtoItem(nbtContainer);
+
+            // byte[] itemDataBytes = Base64.getDecoder().decode(itemData);
+            // ByteArrayInputStream newByteStream = new ByteArrayInputStream(itemDataBytes);
+            // ObjectInputStream objectInput = new ObjectInputStream(newByteStream);
+            // ItemStack copiedItem = (ItemStack) objectInput.readObject();
+            // objectInput.close();
+
+            // YamlConfiguration yaml2 = new YamlConfiguration();
+            // yaml.loadFromString(itemData);
+            // ItemStack copiedItem = yaml.getItemStack("item");
+
             player.getInventory().addItem(copiedItem);
         }
 

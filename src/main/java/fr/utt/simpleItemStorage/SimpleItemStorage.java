@@ -6,6 +6,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
+
 public final class SimpleItemStorage extends JavaPlugin {
     private static SimpleItemStorage instance = null;
     /**
@@ -64,10 +66,16 @@ public final class SimpleItemStorage extends JavaPlugin {
 
 
         switch (llabel) {
-            case "reload", "rl":
+            case "reload":
                 return CommandHandler.reload(sender, command, label, args, this);
-            case "test", "t":
-                return CommandHandler.test(sender, command, label, args, this);
+            case "test":
+                try {
+                    return CommandHandler.test(sender, command, label, args, this);
+                } catch (Exception e) {
+                    sender.sendMessage("An error occurred while testing the plugin");
+                    e.printStackTrace();
+                    return false;
+                }
             case "server":
                 return CommandHandler.server(sender, command, label, args);
             case "terminal":

@@ -67,9 +67,12 @@ public class CommandHandler {
         }
         if (XMaterial.matchXMaterial(itemInHand) == XMaterial.AIR) {
             player.sendMessage("You are not holding any item");
+        } else if (XMaterial.matchXMaterial(itemInHand).name().contains("BUNDLE")) {
+            player.sendMessage("You are holding a bundle and it can't be stored");
         } else {
             Gson gson = new Gson();
             String itemName = gson.toJson(XItemStack.serialize(itemInHand));
+            // String itemName = XItemStack.serialize(itemInHand).toString();
 
             // ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             // ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
@@ -78,8 +81,8 @@ public class CommandHandler {
             // String base64Item = Base64.getEncoder().encodeToString(byteStream.toByteArray());
             // String itemData = base64Item;
 
-            NBTItem nbtItem = new NBTItem(itemInHand);
-            String itemData = nbtItem.toString();
+            // NBTItem nbtItem = new NBTItem(itemInHand);
+            // String itemData = nbtItem.toString();
 
             // YamlConfiguration yaml = new YamlConfiguration();
             // yaml.set("item", itemInHand);
@@ -87,7 +90,7 @@ public class CommandHandler {
             // yaml.save(String.valueOf(writer));
             // String itemData = writer.toString();
 
-            sender.sendMessage("You are holding " + itemName + " x" + itemInHand.getAmount() + " with the following data: " + itemData);
+            sender.sendMessage("You are holding " + itemName + " x" + itemInHand.getAmount());
 
             // copy the item in hand with the two string
             Map<String, Object> itemDataMap = gson.fromJson(itemName, new TypeToken<Map<String,Object>>(){}.getType());
@@ -102,6 +105,8 @@ public class CommandHandler {
             // ObjectInputStream objectInput = new ObjectInputStream(newByteStream);
             // ItemStack copiedItem = (ItemStack) objectInput.readObject();
             // objectInput.close();
+
+            // ItemStack copiedItem = XItemStack.deserialize();
 
             // YamlConfiguration yaml2 = new YamlConfiguration();
             // yaml.loadFromString(itemData);

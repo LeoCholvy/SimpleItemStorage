@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+import static fr.utt.simpleItemStorage.SISPrinter.print;
+import static fr.utt.simpleItemStorage.SISPrinter.printError;
+
 /**
  * The DbManipulator class is responsible for managing the database operations
  * for the SimpleItemStorage plugin. It provides methods to connect to the database,
@@ -83,16 +86,19 @@ public class DbManipulator {
             if (resultSet.next()) {
                 String version = resultSet.getString("version");
                 if (!currentVersion.equals(version)) {
-                    SimpleItemStorage.getInstance().getLogger().severe("Database version mismatch");
+                    // SimpleItemStorage.getInstance().getLogger().severe("Database version mismatch");
+                    printError("Database version mismatch");
                     throw new SQLException("Database version mismatch");
                 }
             } else {
                 this.connection.createStatement().execute("INSERT INTO SIS_Infos (version) VALUES ('" + currentVersion + "');");
             }
 
-            SimpleItemStorage.getInstance().getLogger().info("Tables has been created in the database");
+            // SimpleItemStorage.getInstance().getLogger().info("Tables has been created in the database");
+            print("Tables has been created in the database");
         } catch (SQLException e) {
-            SimpleItemStorage.getInstance().getLogger().severe("Failed to create the table");
+            // SimpleItemStorage.getInstance().getLogger().severe("Failed to create the table");
+            printError("Failed to create the table");
             e.printStackTrace();
         }
     }
@@ -103,9 +109,11 @@ public class DbManipulator {
     private synchronized void connect() {
         try {
             this.connection = DriverManager.getConnection(url);
-            SimpleItemStorage.getInstance().getLogger().info("Connection to the database has been established");
+            // SimpleItemStorage.getInstance().getLogger().info("Connection to the database has been established");
+            print("Connection to the database has been established");
         } catch (SQLException e) {
-            SimpleItemStorage.getInstance().getLogger().severe("Failed to connect to the database");
+            // SimpleItemStorage.getInstance().getLogger().severe("Failed to connect to the database");
+            printError("Failed to connect to the database");
             e.printStackTrace();
         }
     }
@@ -117,11 +125,13 @@ public class DbManipulator {
         try {
             if (this.connection != null) {
                 this.connection.close();
-                SimpleItemStorage.getInstance().getLogger().info("Connection to the database has been closed");
+                // SimpleItemStorage.getInstance().getLogger().info("Connection to the database has been closed");
+                print("Connection to the database has been closed");
                 instance = null;
             }
         } catch (SQLException e) {
-            SimpleItemStorage.getInstance().getLogger().severe("Failed to close the connection to the database");
+            // SimpleItemStorage.getInstance().getLogger().severe("Failed to close the connection to the database");
+            printError("Failed to close the connection to the database");
             e.printStackTrace();
         }
     }
@@ -261,6 +271,7 @@ public class DbManipulator {
         String query = "SELECT * FROM SIS_Items WHERE ServerId = " + server.getId() +
                        DbManipulator.parseOrder(order) +
                        " LIMIT 10 OFFSET " + (page - 1) * 10 + ";";
+        SimpleItemStorage.getInstance().getLogger().info("Query: " + query);
         List<SISItem> items = new ArrayList<>();
         var resultSet = this.connection.createStatement().executeQuery(query);
         while (resultSet.next()) {
@@ -303,7 +314,7 @@ public class DbManipulator {
                 return result;
             });
 
-            // On attend 100 ms
+            // On attend 10 ms (un tick minecraft c'est 50 ms)
             try {
                 // get(timeout, TimeUnit) lève TimeoutException si le temps est dépassé
                 items = future.get(10, TimeUnit.MILLISECONDS);
@@ -312,7 +323,7 @@ public class DbManipulator {
                 statement.cancel();
                 future.cancel(true);
                 // … et on peut lever une exception, ou renvoyer une liste vide, etc.
-                throw new SQLException("Query timed out after 100 ms", e);
+                throw new SQLException("Query timed out after 10 ms", e);
             } catch (Exception e) {
                 // Gérer les autres exceptions
                 throw new SQLException("Error during query execution", e);

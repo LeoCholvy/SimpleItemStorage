@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static fr.utt.simpleItemStorage.SISPrinter.print;
+
 public final class SimpleItemStorage extends JavaPlugin {
     private static SimpleItemStorage instance = null;
     /**
@@ -31,7 +33,8 @@ public final class SimpleItemStorage extends JavaPlugin {
      */
     @Override
     public void onEnable() {
-        this.getLogger().info("SimpleItemStorage has been enabled");
+        // this.getLogger().info("SimpleItemStorage has been enabled");
+        print("SimpleItemStorage has been enabled");
 
         ConfigManipulator.getInstance();
         DbManipulator.getInstance();
@@ -53,7 +56,8 @@ public final class SimpleItemStorage extends JavaPlugin {
      */
     @Override
     public void onDisable() {
-        this.getLogger().info("SimpleItemStorage has been disabled");
+        // this.getLogger().info("SimpleItemStorage has been disabled");
+        print("SimpleItemStorage has been disabled");
 
         DbManipulator.getInstance().disconnect();
     }

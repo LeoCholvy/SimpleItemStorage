@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.utt.simpleItemStorage.SISPrinter.printError;
+import static fr.utt.simpleItemStorage.SISPrinter.printPlayer;
+
 /**
  * The SISSession class represents a session for a player in the SimpleItemStorage plugin.
  * It provides methods to create, manage, and destroy sessions, as well as to add and remove items.
@@ -41,10 +44,11 @@ public class SISSession {
      * @param serverName the name of the server
      * @throws SQLException if an error occurs while retrieving the server
      */
-    public static void createSession(Player player, String serverName) throws SQLException {
+    public static SISSession createSession(Player player, String serverName) throws SQLException {
         if (DbManipulator.getInstance().getServer(serverName) == null) {
-            player.sendMessage("The server " + serverName + " does not exist");
-            return;
+            // player.sendMessage("The server " + serverName + " does not exist");
+            printPlayer("The server " + serverName + " does not exist", player);
+            return null;
         }
         if (sessions.containsKey(player)) {
             sessions.get(player).destroy();
@@ -54,6 +58,7 @@ public class SISSession {
         sessions.put(player, session);
 
         session.display();
+        return session;
     }
 
     /**
@@ -70,27 +75,35 @@ public class SISSession {
      * Displays the items in the session to the player.
      * This method is called periodically to update the player's view.
      */
-    private void display() {
-        String order = "";
+    public void display(String order) {
+        // String order = "";
         int page = 1;
         newTask(() -> {
             try {
                 List<SISItem> items = this.getPageItemStacks(order, page);
 
-                player.sendMessage("Server: " + this.server.getId());
+                // player.sendMessage("Server: " + this.server.getId());
+                printPlayer("Server: " + this.server.getId(), player);
 
                 // FIXME
                 for (SISItem item : items) {
-                    player.sendMessage("Item: " + item.getMaterialName() + " Count: " + item.getCount() + " Data: " + item.getData());
+                    // player.sendMessage("Item: " + item.getMaterialName() + " Count: " + item.getCount() + " Data: " + item.getData());
+                    printPlayer("Item: " + item.getMaterialName() + " Count: " + item.getCount() + " Data: " + item.getData(), player);
                 }
 
                 player.sendMessage("--------------------");
             } catch (Exception e) {
                 e.printStackTrace();
-                SimpleItemStorage.getInstance().getLogger().severe("Failed to get the page item stacks");
-                this.player.sendMessage("Failed to get the page item stacks");
+                // SimpleItemStorage.getInstance().getLogger().severe("Failed to get the page item stacks");
+                printError("Failed to get the page item stacks");
+                // this.player.sendMessage("Failed to get the page item stacks");
+                printPlayer("Failed to get the page item stacks", player);
             }
         });
+    }
+
+    public void display() {
+        this.display("");
     }
 
     /**
@@ -125,11 +138,14 @@ public class SISSession {
             try {
                 DbManipulator.getInstance().addItem(item);
                 // FIXME: remove this
-                player.sendMessage("Item added");
+                // player.sendMessage("Item added");
+                printPlayer("Item added", player);
             } catch (SQLException e) {
                 e.printStackTrace();
-                SimpleItemStorage.getInstance().getLogger().severe("Failed to add the item");
-                player.sendMessage("Failed to add the item");
+                // SimpleItemStorage.getInstance().getLogger().severe("Failed to add the item");
+                printError("Failed to add the item");
+                // player.sendMessage("Failed to add the item");
+                printPlayer("Failed to add the item", player);
             }
         });
     }
@@ -143,7 +159,7 @@ public class SISSession {
         if (this.task != null) {
             this.task.cancel();
         }
-        Bukkit.getScheduler().runTaskAsynchronously(SimpleItemStorage.getInstance(), runnable);
+        this.task = Bukkit.getScheduler().runTaskAsynchronously(SimpleItemStorage.getInstance(), runnable);
     }
 
     /**
@@ -182,17 +198,21 @@ public class SISSession {
 
                 DbManipulator.getInstance().removeItem(server, itemData, count);
                 // FIXME: remove this
-                player.sendMessage("Item removed");
+                // player.sendMessage("Item removed");
+                printPlayer("Item removed", player);
 
                 // add the item to the player inventory
                 ItemStack itemStack = SISItem.jsonToItemStack(itemData, count);
                 player.getInventory().addItem(itemStack);
             } catch (SQLException e) {
                 e.printStackTrace();
-                SimpleItemStorage.getInstance().getLogger().severe("Failed to remove the item");
-                player.sendMessage("Failed to remove the item");
+                // SimpleItemStorage.getInstance().getLogger().severe("Failed to remove the item");
+                printError("Failed to remove the item");
+                // player.sendMessage("Failed to remove the item");
+                printPlayer("Failed to remove the item", player);
             } catch (Exception e) {
-                player.sendMessage(e.getMessage());
+                // player.sendMessage(e.getMessage());
+                printPlayer(e.getMessage(), player);
             }
         });
     }

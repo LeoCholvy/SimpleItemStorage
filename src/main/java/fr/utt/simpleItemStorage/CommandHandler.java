@@ -13,10 +13,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
+
+import static fr.utt.simpleItemStorage.SISPrinter.*;
 
 public class CommandHandler {
     /**
@@ -37,12 +37,15 @@ public class CommandHandler {
 
             pluginManager.enablePlugin(plugin);
 
-            plugin.getLogger().info("SimpleItemStorage has been reloaded");
-            sender.sendMessage("SimpleItemStorage has been reloaded");
+            // plugin.getLogger().info("SimpleItemStorage has been reloaded");
+            // sender.sendMessage("SimpleItemStorage has been reloaded");
+            print("SimpleItemStorage has been reloaded");
+            printPlayer("SimpleItemStorage has been reloaded", sender);
 
             return true;
         } catch (Exception e) {
-            sender.sendMessage("An error occurred while reloading the plugin");
+            // sender.sendMessage("An error occurred while reloading the plugin");
+            printPlayer("§cAn error occurred while reloading the plugin", sender);
             return false;
         }
     }
@@ -73,12 +76,15 @@ public class CommandHandler {
             case "add":
                 try {
                     String serverName = SISServer.addServer(player);
-                    sender.sendMessage("Server " + serverName + " has been added");
+                    // sender.sendMessage("Server " + serverName + " has been added");
+                    printPlayer("Server " + serverName + " has been added", sender);
                     return true;
                 } catch (Exception e) {
-                    SimpleItemStorage.getInstance().getLogger().severe("An error occurred while adding the server");
+                    // SimpleItemStorage.getInstance().getLogger().severe("An error occurred while adding the server");
+                    printError("An error occurred while adding the server");
                     e.printStackTrace();
-                    sender.sendMessage("An error occurred while adding the server");
+                    // sender.sendMessage("An error occurred while adding the server");
+                    printPlayer("§cAn error occurred while adding the server", sender);
                     return false;
                 }
             case "remove":
@@ -86,7 +92,8 @@ public class CommandHandler {
                 // FIXME : destroy all the sessions of the server and terminals of the server
 
                 if (args.length < 2) {
-                    sender.sendMessage("Usage: /server remove <name>");
+                    // sender.sendMessage("Usage: /server remove <name>");
+                    printPlayer("Usage: /server remove <name>", sender);
                     return false;
                 }
                 String serverName = args[1];
@@ -94,18 +101,22 @@ public class CommandHandler {
                 try {
                     SISServer server = SISServer.getServer(serverName);
                     if (server == null) {
-                        sender.sendMessage("Server " + serverName + " not found");
+                        // sender.sendMessage("Server " + serverName + " not found");
+                        printPlayer("Server " + serverName + " not found", sender);
                         return false;
                     }
 
                     server.remove();
-                    sender.sendMessage("Server " + serverName + " has been removed");
+                    // sender.sendMessage("Server " + serverName + " has been removed");
+                    printPlayer("Server " + serverName + " has been removed", sender);
                     return true;
 
                 } catch (Exception e) {
-                    sender.sendMessage("An error occurred while removing the server");
+                    // sender.sendMessage("An error occurred while removing the server");
+                    printPlayer("§cAn error occurred while removing the server", sender);
                     e.printStackTrace();
-                    SimpleItemStorage.getInstance().getLogger().severe("An error occurred while removing the server");
+                    // SimpleItemStorage.getInstance().getLogger().severe("An error occurred while removing the server");
+                    printError("An error occurred while removing the server");
                     return false;
                 }
             case "list":
@@ -113,25 +124,31 @@ public class CommandHandler {
                     List<SISServer> servers = SISServer.getServers();
 
                     if (servers.isEmpty()) {
-                        sender.sendMessage("No server found");
+                        // sender.sendMessage("No server found");
+                        printPlayer("No server found", sender);
                         return true;
                     }
 
                     for (SISServer server : servers) {
-                        sender.sendMessage(server.getId());
+                        // sender.sendMessage(server.getId());
+                        printPlayer(server.getId(), sender);
                     }
 
-                    sender.sendMessage(servers.size() + " server(s) found !");
+                    // sender.sendMessage(servers.size() + " server(s) found !");
+                    printPlayer(servers.size() + " server(s) found !", sender);
 
                     return true;
                 } catch (Exception e) {
-                    SimpleItemStorage.getInstance().getLogger().severe("An error occurred while listing the servers");
-                    sender.sendMessage("An error occurred while listing the servers");
+                    // SimpleItemStorage.getInstance().getLogger().severe("An error occurred while listing the servers");
+                    printError("An error occurred while listing the servers");
+                    // sender.sendMessage("An error occurred while listing the servers");
+                    printPlayer("§cAn error occurred while listing the servers", sender);
                     e.printStackTrace();
                     return false;
                 }
             default:
-                sender.sendMessage("Usage: /server <add|remove|list> [name]");
+                // sender.sendMessage("Usage: /server <add|remove|list> [name]");
+                printPlayer("Usage: /server <add|remove|list> [name]", sender);
                 return false;
         }
     }
@@ -147,13 +164,13 @@ public class CommandHandler {
      */
     public static boolean session(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("This command can only be executed by a player");
+            // sender.sendMessage("This command can only be executed by a player");
+            printPlayer("This command can only be executed by a player", sender);
             return false;
         }
 
         if (args.length == 0) {
-            // FIXME
-            sender.sendMessage("Usage: /terminal <add|remove|list> [name]");
+            printPlayer("Usage: /<command> <open|get|add> [itemData] [count]", sender);
             return false;
         }
 
@@ -162,35 +179,54 @@ public class CommandHandler {
         switch (action) {
             case "open":
                 if (args.length < 2) {
-                    sender.sendMessage("Usage: /session <open|get|add> [itemData] [count]");
+                    // sender.sendMessage("Usage: /session <open|get|add> [itemData] [count]");
+                    printPlayer("Usage: /session <open|get|add> [itemData] [count]", sender);
                     return false;
                 }
 
                 String serverName = args[1];
+                SISSession session;
                 try {
-                    SISSession.createSession(player, serverName);
+                    session = SISSession.createSession(player, serverName);
+                    if (args.length >= 3 && session != null) {
+                        String order = args[2];
+                        if (order.equalsIgnoreCase("sort")) {
+                            order = null;
+                        }
+
+                        // player.sendMessage("Order: " + order);
+                        printDebugPlayer("Order: " + order, player);
+
+                        session.display(order);
+                    }
+
                     return true;
                 } catch (Exception e) {
-                    SimpleItemStorage.getInstance().getLogger().severe("An error occurred while opening the terminal");
-                    sender.sendMessage("An error occurred while opening the terminal");
+                    // SimpleItemStorage.getInstance().getLogger().severe("An error occurred while opening the terminal");
+                    // sender.sendMessage("An error occurred while opening the terminal");
+                    printError("An error occurred while opening the terminal");
+                    printDebugPlayer("An error occurred while opening the terminal", player);
                     e.printStackTrace();
                     return false;
                 }
             case "add":
-                SISSession session = SISSession.getSession(player);
+                session = SISSession.getSession(player);
                 if (session == null) {
-                    sender.sendMessage("An error occurred while adding the item");
+                    // sender.sendMessage("An error occurred while adding the item");
+                    printPlayer("You need to open a terminal first", sender);
                     return false;
                 }
 
                 ItemStack itemStack = player.getInventory().getItemInMainHand();
                 String itemName = XMaterial.matchXMaterial(itemStack.getType()).name();
                 if (itemName.equalsIgnoreCase("AIR")) {
-                    sender.sendMessage("You can't add air to the terminal");
+                    // sender.sendMessage("You can't add air to the terminal");
+                    printPlayer("You can't add air to the terminal", sender);
                     return true;
                 }
                 if (itemName.equalsIgnoreCase("BUNDLE")) {
-                    sender.sendMessage("You can't add bundles to the terminal");
+                    // sender.sendMessage("You can't add bundles to the terminal");
+                    printPlayer("You can't add bundles to the terminal", sender);
                     return true;
                 }
 
@@ -201,7 +237,8 @@ public class CommandHandler {
                 return true;
             case "get":
                 if (args.length < 2) {
-                    sender.sendMessage("Usage: /session <open|get|add> [itemData] [count]");
+                    // sender.sendMessage("Usage: /session <open|get|add> [itemData] [count]");
+                    printPlayer("Usage: /session <open|get|add> [itemData] [count]", sender);
                     return false;
                 }
 
@@ -212,14 +249,16 @@ public class CommandHandler {
                 }
                 session = SISSession.getSession(player);
                 if (session == null) {
-                    sender.sendMessage("An error occurred while getting the item");
+                    // sender.sendMessage("An error occurred while getting the item");
+                    printPlayer("You need to open a terminal first", sender);
                     return false;
                 }
 
                 try {
                     // check if the item exists in the server
                     if (!session.containsItem(itemData)) {
-                        sender.sendMessage("Item not found");
+                        // sender.sendMessage("Item not found");
+                        printPlayer("Item not found", sender);
                         return false;
                     }
 
@@ -227,14 +266,17 @@ public class CommandHandler {
                     session.removeItem(itemData, count);
 
                 } catch (SQLException e) {
-                    sender.sendMessage("An error occurred while getting the item");
+                    // sender.sendMessage("An error occurred while getting the item");
+                    printPlayer("An error occurred while getting the item", sender);
+                    printError("An error occurred while getting the item");
                     e.printStackTrace();
                     return false;
                 }
 
 
             default:
-                sender.sendMessage("Usage: /<command> <open|get|add> [itemData]");
+                // sender.sendMessage("Usage: /<command> <open|get|add> [itemData]");
+                printPlayer("Usage: /<command> <open|get|add> [itemData]", sender);
                 return false;
         }
     }

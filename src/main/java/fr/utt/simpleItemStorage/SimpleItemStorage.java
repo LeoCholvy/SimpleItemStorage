@@ -1,12 +1,13 @@
 package fr.utt.simpleItemStorage;
 
-import fr.utt.simpleItemStorage.CommandHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.event.EventHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public final class SimpleItemStorage extends JavaPlugin {
     private static SimpleItemStorage instance = null;
@@ -34,6 +35,17 @@ public final class SimpleItemStorage extends JavaPlugin {
 
         ConfigManipulator.getInstance();
         DbManipulator.getInstance();
+
+        this.initTabCompleter();
+    }
+
+    private void initTabCompleter() {
+        SISTabCompleter tabCompleter = new SISTabCompleter();
+        List<String> commands = Arrays.asList("server", "terminal", "session");
+        for (String command : commands) {
+            this.getCommand(command).setTabCompleter(tabCompleter);
+            this.getCommand("simpleitemstorage:" + command).setTabCompleter(tabCompleter);
+        }
     }
 
     /**
@@ -68,18 +80,13 @@ public final class SimpleItemStorage extends JavaPlugin {
         switch (llabel) {
             case "reload":
                 return CommandHandler.reload(sender, command, label, args, this);
-            case "test":
-                try {
-                    return CommandHandler.test(sender, command, label, args, this);
-                } catch (Exception e) {
-                    sender.sendMessage("An error occurred while testing the plugin");
-                    e.printStackTrace();
-                    return false;
-                }
             case "server":
-                return CommandHandler.server(sender, command, label, args);
-            case "terminal":
-                return CommandHandler.terminal(sender, command, label, args);
+                // Execute the command asynchronously because it may take some time, we need to call the db api
+                Bukkit.getScheduler().runTaskAsynchronously(this, () -> CommandHandler.server(sender, command, label, args));
+                return true;
+            case "session":
+                Bukkit.getScheduler().runTaskAsynchronously(this, () -> CommandHandler.session(sender, command, label, args));
+                return true;
             default:
                 return false;
         }

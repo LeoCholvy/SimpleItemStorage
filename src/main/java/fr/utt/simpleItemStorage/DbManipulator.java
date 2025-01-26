@@ -1,5 +1,6 @@
 package fr.utt.simpleItemStorage;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -22,8 +23,7 @@ public class DbManipulator {
     private static String url = null;
     private static DbManipulator instance = null;
     private Connection connection = null;
-    private static final String currentVersion = "1";
-
+    private static final String currentVersion = "2";
     /**
      * Private constructor to prevent instantiation from outside the class.
      * Initializes the database connection and tables.
@@ -87,6 +87,10 @@ public class DbManipulator {
                 String version = resultSet.getString("version");
                 if (!currentVersion.equals(version)) {
                     // SimpleItemStorage.getInstance().getLogger().severe("Database version mismatch");
+                    // if (version.equals("1")) {
+                    //     updateDbFromOlderVersion("1");
+                    //     return;
+                    // }
                     printError("Database version mismatch");
                     throw new SQLException("Database version mismatch");
                 }
@@ -101,6 +105,21 @@ public class DbManipulator {
             printError("Failed to create the table");
             e.printStackTrace();
         }
+    }
+
+    private synchronized void updateDbFromOlderVersion(String version) {
+        // if (version.equals("1")) {
+        //     String query = "UPDATE SIS_Infos SET version = '" + currentVersion + "';";
+        //     try {
+        //         this.connection.createStatement().executeUpdate(query);
+        //         // SimpleItemStorage.getInstance().getLogger().info("Database has been updated to version " + currentVersion);
+        //         print("Database has been updated to version " + currentVersion);
+        //     } catch (SQLException e) {
+        //         // SimpleItemStorage.getInstance().getLogger().severe("Failed to update the database");
+        //         printError("Failed to update the database");
+        //         e.printStackTrace();
+        //     }
+        // }
     }
 
     /**
@@ -187,7 +206,9 @@ public class DbManipulator {
      * @throws SQLException if an error occurs while adding the server
      */
     public synchronized String addServer(Player player) throws SQLException {
-        String date = String.valueOf(System.currentTimeMillis());
+        // String date = String.valueOf(System.currentTimeMillis());
+        String date = String.valueOf(SimpleItemStorage.getInstance().getServer().getWorld("world").getFullTime());
+
         String owner = player.getName();
 
         String query;

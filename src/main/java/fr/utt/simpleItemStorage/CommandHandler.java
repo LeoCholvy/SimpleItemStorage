@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -36,6 +37,7 @@ public class CommandHandler {
             pluginManager.disablePlugin(plugin);
 
             pluginManager.enablePlugin(plugin);
+            ConfigManipulator.getInstance().reload();
 
             // plugin.getLogger().info("SimpleItemStorage has been reloaded");
             // sender.sendMessage("SimpleItemStorage has been reloaded");
@@ -209,6 +211,7 @@ public class CommandHandler {
                     e.printStackTrace();
                     return false;
                 }
+                // break;
             case "add":
                 session = SISSession.getSession(player);
                 if (session == null) {
@@ -235,6 +238,7 @@ public class CommandHandler {
                 // remove the item from the player inventory
                 player.getInventory().setItemInMainHand(new ItemStack(XMaterial.AIR.parseMaterial()));
                 return true;
+                // break;
             case "get":
                 if (args.length < 2) {
                     // sender.sendMessage("Usage: /session <open|get|add> [itemData] [count]");
@@ -273,11 +277,21 @@ public class CommandHandler {
                     return false;
                 }
 
-
+                return true;
             default:
                 // sender.sendMessage("Usage: /<command> <open|get|add> [itemData]");
                 printPlayer("Usage: /<command> <open|get|add> [itemData]", sender);
                 return false;
         }
+    }
+
+    public static void terminal(CommandSender sender, Command command, String label, String[] args) {
+        // if (!(sender instanceof Player)) {
+        //     sender.sendMessage("This command can only be executed by a player");
+        //     return;
+        // }
+        // Player player = (Player) sender;
+        // ItemStack item = SISTerminal.getTerminalItemStack();
+        // player.getInventory().addItem(item);
     }
 }

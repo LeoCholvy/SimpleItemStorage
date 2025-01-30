@@ -1,8 +1,13 @@
 package fr.utt.simpleItemStorage;
 
+import fr.utt.simpleItemStorage.event.TerminalListener;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -40,6 +45,14 @@ public final class SimpleItemStorage extends JavaPlugin {
         DbManipulator.getInstance();
 
         this.initTabCompleter();
+
+
+        List<Listener> listeners = Arrays.asList(new TerminalListener());
+        for (Listener listener : listeners) {
+            Bukkit.getPluginManager().registerEvents(listener, this);
+        }
+
+        SISRecipes.initRecipes();
     }
 
     private void initTabCompleter() {
@@ -90,6 +103,9 @@ public final class SimpleItemStorage extends JavaPlugin {
                 return true;
             case "session":
                 Bukkit.getScheduler().runTaskAsynchronously(this, () -> CommandHandler.session(sender, command, label, args));
+                return true;
+            case "terminal":
+                Bukkit.getScheduler().runTaskAsynchronously(this, () -> CommandHandler.terminal(sender, command, label, args));
                 return true;
             default:
                 return false;

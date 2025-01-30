@@ -1,6 +1,7 @@
 package fr.utt.simpleItemStorage;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -23,7 +24,7 @@ public class DbManipulator {
     private static String url = null;
     private static DbManipulator instance = null;
     private Connection connection = null;
-    private static final String currentVersion = "2";
+    private static final String currentVersion = "3";
     /**
      * Private constructor to prevent instantiation from outside the class.
      * Initializes the database connection and tables.
@@ -48,6 +49,28 @@ public class DbManipulator {
         return instance;
     }
 
+    public synchronized SISTerminal getTerminal(Block block) throws SQLException {
+        String locX = String.valueOf(block.getX());
+        String locY = String.valueOf(block.getY());
+        String locZ = String.valueOf(block.getZ());
+        String world = block.getWorld().getName();
+
+        String query = "SELECT * FROM SIS_Terminals WHERE locX = " + locX + " AND locY = " + locY + " AND locZ = " + locZ + " AND world = '" + world + "';";
+
+        var resultSet = this.connection.createStatement().executeQuery(query);
+        if (resultSet.next()) {
+            return new SISTerminal(resultSet.getString("id"),
+                                   resultSet.getString("locX"),
+                                   resultSet.getString("locY"),
+                                   resultSet.getString("locZ"),
+                                   resultSet.getString("ServerId"),
+                                   resultSet.getString("active"),
+                                   resultSet.getString("world"));
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Initializes the database tables if they do not already exist.
      */
@@ -69,7 +92,9 @@ public class DbManipulator {
                     "    locZ INTEGER NOT NULL,\n" +
                     "    ServerId INTEGER NOT NULL,\n" +
                     "    active BOOLEAN DEFAULT FALSE,\n" +
+                    "    world TEXT,\n" +
                     "    FOREIGN KEY (ServerId) REFERENCES SIS_Servers (id)\n" +
+                    "    UNIQUE (locX, locY, locZ, world)\n" +
                     ");");
             this.connection.createStatement().execute("CREATE TABLE IF NOT EXISTS SIS_Items (\n" +
                     "    MaterialName TEXT NOT NULL,\n" +
@@ -86,11 +111,9 @@ public class DbManipulator {
             if (resultSet.next()) {
                 String version = resultSet.getString("version");
                 if (!currentVersion.equals(version)) {
-                    // SimpleItemStorage.getInstance().getLogger().severe("Database version mismatch");
-                    // if (version.equals("1")) {
-                    //     updateDbFromOlderVersion("1");
-                    //     return;
-                    // }
+                    if (updateDbFromOlderVersion(version)) {
+                        return;
+                    }
                     printError("Database version mismatch");
                     throw new SQLException("Database version mismatch");
                 }
@@ -107,19 +130,36 @@ public class DbManipulator {
         }
     }
 
-    private synchronized void updateDbFromOlderVersion(String version) {
-        // if (version.equals("1")) {
-        //     String query = "UPDATE SIS_Infos SET version = '" + currentVersion + "';";
-        //     try {
-        //         this.connection.createStatement().executeUpdate(query);
-        //         // SimpleItemStorage.getInstance().getLogger().info("Database has been updated to version " + currentVersion);
-        //         print("Database has been updated to version " + currentVersion);
-        //     } catch (SQLException e) {
-        //         // SimpleItemStorage.getInstance().getLogger().severe("Failed to update the database");
-        //         printError("Failed to update the database");
-        //         e.printStackTrace();
-        //     }
-        // }
+    /**
+     * Updates the database from an older version to the current version.
+     *
+     * @param version the version of the database
+     * @return true if the database was successfully updated, false otherwise
+     */
+    private synchronized boolean updateDbFromOlderVersion(String version) {
+        if (version.equals("2")) {
+            // Update from version 2 to version 3
+            String query = "UPDATE SIS_Infos SET version = '" + currentVersion + "';";
+            // add column world to SIS_Terminals if it doesn't exist
+            String query2 = "ALTER TABLE SIS_Terminals ADD COLUMN IF NOT EXISTS world TEXT;";
+            // add unique constraint to SIS_Terminals
+            String query3 = "CREATE UNIQUE INDEX IF NOT EXISTS terminal_location ON SIS_Terminals (locX, locY, locZ, world);";
+            try {
+                this.connection.createStatement().executeUpdate(query);
+                this.connection.createStatement().executeUpdate(query2);
+                this.connection.createStatement().executeUpdate(query3);
+
+                print("Database has been updated to version " + currentVersion);
+                return true;
+            } catch (SQLException e) {
+                // SimpleItemStorage.getInstance().getLogger().severe("Failed to update the database");
+                printError("Failed to update the database");
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -470,5 +510,30 @@ public class DbManipulator {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * Retrieves the quantity of a specific item from a server.
+     *
+     * @param server the server to check
+     * @param itemData the data of the item to check
+     * @return the quantity of the item
+     * @throws SQLException if an error occurs while retrieving the item quantity
+     */
+    public void addTerminal(Block block, String id) throws SQLException {
+        String locX = String.valueOf(block.getX());
+        String locY = String.valueOf(block.getY());
+        String locZ = String.valueOf(block.getZ());
+        String world = block.getWorld().getName();
+
+        String query = "INSERT INTO SIS_Terminals (locX, locY, locZ, ServerId, active, world) VALUES (\n" +
+                       "  " + locX + ",\n" +
+                       "  " + locY + ",\n" +
+                       "  " + locZ + ",\n" +
+                       "  " + id + ",\n" +
+                       "  1,\n" +
+                       "  '" + world + "'\n" +
+                       ");";
+        this.connection.createStatement().executeUpdate(query);
     }
 }

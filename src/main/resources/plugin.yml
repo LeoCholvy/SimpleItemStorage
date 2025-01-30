@@ -1,7 +1,7 @@
 name: SimpleItemStorage
 version: '1.0-ALPHA'
 main: fr.utt.simpleItemStorage.SimpleItemStorage
-api-version: '1.13'
+api-version: '1.14'
 
 
 #depend: [NBTAPI]
@@ -15,7 +15,7 @@ commands:
     usage: /<command> <add|remove|list> [name]
   terminal:
     description: Open the terminal
-    usage: /<command> <create|remove>
+    usage: /<command> <create|remove|getBlock>
   session:
     description: Manage the sessions
     usage: /<command> <open|get|add> [itemData] [count]

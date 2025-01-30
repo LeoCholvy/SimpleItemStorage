@@ -17,11 +17,7 @@ public class ConfigManipulator {
      */
     private ConfigManipulator() {
         instance = this;
-
-        // Create the data folder if it does not exist
-        new File(SimpleItemStorage.getInstance().getDataFolder().getPath()).mkdirs();
-        SimpleItemStorage plugin = SimpleItemStorage.getInstance();
-        plugin.saveDefaultConfig();
+        this.reload();
     }
 
     /**
@@ -50,5 +46,9 @@ public class ConfigManipulator {
      * Reloads the configuration settings. Currently, this method does not perform any actions.
      */
     public void reload() {
+        // Create the data folder if it does not exist
+        new File(SimpleItemStorage.getInstance().getDataFolder().getPath()).mkdirs();
+        SimpleItemStorage plugin = SimpleItemStorage.getInstance();
+        plugin.saveDefaultConfig();
     }
 }
